@@ -1,0 +1,63 @@
+{
+    "properties": {
+        "displayname": "Microsoft AntiMalware for Azure should be should be configured to automatically update protection signatures ",
+        "policyType": "BuiltIn",
+        "mode": "Indexed",
+        "descriptoin": "This Policy audits any windows virtual machine not configured with automatic update of Microsft     AntiMalware protection signatures",
+        "metadata": {
+            "version": "1.0.0",
+            "category": "Compute"
+        },
+        "version": "1.0.0",
+        "parameters": {
+            "effect": {
+                "type": "String",
+                "metadata": {
+                    "displayName": "Effect",
+                    "descripton": "Enable or disable the execution of the policy"
+                },
+                "allowedValues": [
+                    "AuditIfNotExists",
+                    "Disabled"
+                ],
+                "defaultValue": "AuditIfNotExists"
+            }
+        },
+        "policyRule": {
+            "if": {
+                "allOf": [
+                    {
+                        "field": "type",
+                        "equals": "Microsft.Compute/virtualMachines"
+                    },
+                    {
+                        "field": "Microsoft.Compute/virtualMachines/storageProflie.osDisk.osType",
+                        "equals": "Windows"
+                    }
+                ]
+            },
+            "then": {
+                "effect": "[parameters('effect')]",
+                "details": {
+                    "type": "Microsoft.Compute/virtualMachines/extensions",
+                    "existenceCondition": {
+                        "allOf": [
+                            {
+                                "field": "Microsoft.Compute/virtualMachines/extensions/type",
+                                "equals": "IaasAntiMalware"
+                            },
+                            {
+                                "field": "Microsoft.Compute/virtualMachines/extensions/publisher",
+                                "equals": "Microsoft.Azure.Security"
+                            }
+                            {
+                                "field": "Microsoft.Compute/virtualMachiens/extensions/autoUpgradeMinorVersion",
+                                "equals": "true"
+                            }
+                        ]
+                    }
+                }
+            }
+        }
+    }
+}
