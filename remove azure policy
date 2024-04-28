@@ -1,0 +1,24 @@
+$azSubcriptions = Get-AzSubscription -tenantid '## Your TenantID ##'
+
+$PolicyAssignmentNameNotLike = "ASC Default*"
+
+Foreach($azSubcription in $azSubcriptions){
+
+    Write-verbose "RUN : Subscription : $($azSubcription.name)" -Verbose
+
+    $azPolicyAssignments = ((Invoke-AzRestMethod -uri "https://management.azure.com/subscriptions/$($azSubcription.id)/providers/Microsoft.Authorization/policyAssignments?api-version=2022-06-01").content | convertfrom-json).value
+
+    Foreach($azPolicyAssignment in $azPolicyAssignments.where{$_.properties.displayName -notlike $PolicyAssignmentNameNotLike}){
+
+        Write-verbose "DELETE PolicyAssignment : $($azPolicyAssignment.properties.displayName)" -verbose
+
+        $webrequest = Invoke-AzRestMethod -method DELETE -uri "https://management.azure.com/subscriptions/$($azSubcription.id)/providers/Microsoft.Authorization/policyAssignments/$($azPolicyAssignment.name)?api-version=2022-06-01"
+
+        if($webrequest.StatusCode -eq 200){
+            Write-verbose "Suceeded to Delete Policy Assignment: $($azPolicyAssignment.name)"
+        } else {
+            Write-Error "Failed to Delete Policy Assignment: $($azPolicyAssignment.name)"
+        }
+    }
+
+}
